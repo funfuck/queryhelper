@@ -1,8 +1,6 @@
 package helper
 
 import (
-	"net/http"
-
 	"fmt"
 
 	"github.com/jinzhu/gorm"
@@ -31,7 +29,7 @@ type QueryInterface interface {
 type QueryFactory struct {
 	Q   QueryInterface
 	DB  *gorm.DB
-	Req *http.Request
+	Req *QueryString
 }
 
 func (fac *QueryFactory) FindAll() (interface{}, error) {
@@ -52,11 +50,11 @@ func (fac *QueryFactory) FindAll() (interface{}, error) {
 	}
 
 	// search
-	queryString, err := ParseQueryString(fac.Req)
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range queryString.Search {
+	// queryString, err := ParseQueryString(fac.Req)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	for _, v := range fac.Req.Search {
 		fmt.Println(v.Type, SEARCH_EQUAL, SEARCH_LIKE)
 		switch v.Type {
 		case SEARCH_LIKE:
@@ -67,12 +65,12 @@ func (fac *QueryFactory) FindAll() (interface{}, error) {
 	}
 
 	// limit
-	if queryString.Limit == "" {
-		queryString.Limit = "10"
+	if fac.Req.Limit == "" {
+		fac.Req.Limit = "10"
 	}
-	q = q.Limit(queryString.Limit)
-	if queryString.Order != "" {
-		q = q.Order(queryString.Order + " " + queryString.Direction)
+	q = q.Limit(fac.Req.Limit)
+	if fac.Req.Order != "" {
+		q = q.Order(fac.Req.Order + " " + fac.Req.Direction)
 	}
 
 	// scan
