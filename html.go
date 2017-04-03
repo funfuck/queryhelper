@@ -27,18 +27,30 @@ func GenSearchForm(q []SearchField) template.HTML {
 	t := `<div class="col-lg-4 text-left">
                     <label>%s</label>
 					<input type="hidden" class="form-control" name="search.%d.key" value="%s">
-					<div class="form-group input-group">
+					%s
+				</div>`
+
+	searchIcon := `<div class="form-group input-group">
 						<input type="text" class="form-control" name="search.%d.value" value="%s">
 						<span class="input-group-btn">
 							<button class="btn btn-default" type="submit"><i class="fa fa-search"></i></button>
 						</span>
-					</div>
-				</div>`
+					</div>`
+
+	search := `<input type="text" class="form-control" name="search.%d.value" value="%s">`
 
 	s := ``
 	i := 0
-	for _, v := range q {
-		s += fmt.Sprintf(t, v.Label, i, v.Key, i, v.Value)
+	for k, v := range q {
+
+		input := ``
+		if len(q) - 1 == k {
+			input = fmt.Sprintf(searchIcon, i, v.Value)
+		} else{
+			input = fmt.Sprintf(search, i, v.Value)
+		}
+
+		s += fmt.Sprintf(t, v.Label, i, v.Key, input)
 		i++
 	}
 
