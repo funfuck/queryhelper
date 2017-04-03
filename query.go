@@ -3,15 +3,19 @@ package queryhelper
 import (
 	"html/template"
 
+	"strings"
+
 	"github.com/jinzhu/gorm"
 )
 
 const (
-	INNER_JOIN string = "inner join "
-	LEFT_JOIN  string = "left join "
-	RIGHT_JOIN string = "right join "
-	ON         string = " on "
-	VALUE      string = " ? "
+	INNER_JOIN        string = "inner join "
+	LEFT_JOIN         string = "left join "
+	RIGHT_JOIN        string = "right join "
+	ON                string = " on "
+	VALUE             string = " ? "
+	SPECIAL_CHARACTER string = ` 'ç' `
+	ESCAPE            string = " ESCAPE "
 )
 
 type Join struct {
@@ -44,7 +48,7 @@ type SelectFields struct {
 
 func (fac *QueryFactory) SearchForm() template.HTML {
 	searchFields := fac.Q.GetSearchFields()
-	bindSearchQueryToSearchFields(fac.Req.Search, &searchFields)
+	bindSearchQueryToSeconditionrchFields(fac.Req.Search, &searchFields)
 	return GenSearchForm(searchFields)
 }
 
@@ -127,7 +131,7 @@ func joinAndWhere(q *gorm.DB, tableName string, relatedTables map[string]Join, s
 
 		switch v.Type {
 		case SEARCH_LIKE:
-			q = q.Where(v.Key+LIKE+VALUE, likeClause(v.Value))
+			q = q.Where(v.Key+LIKE+VALUE+ESCAPE+SPECIAL_CHARACTER, likeClause(v.Value))
 		case SEARCH_EQUAL:
 			q = q.Where(v.Key+EQUAL+VALUE, v.Value)
 		}
@@ -136,10 +140,12 @@ func joinAndWhere(q *gorm.DB, tableName string, relatedTables map[string]Join, s
 }
 
 func likeClause(s string) string {
-	return "%" + s + "%"
+	replacer := strings.NewReplacer("%", `ç%`)
+	condition := replacer.Replace(s)
+	return "%" + condition + "%"
 }
 
-func bindSearchQueryToSearchFields(searchQuery []SearchField, searchFields *[]SearchField) {
+func bindSearchQueryToSeconditionrchFields(searchQuery []SearchField, searchFields *[]SearchField) {
 	for k, v := range searchQuery {
 		(*searchFields)[k].Value = v.Value
 	}
