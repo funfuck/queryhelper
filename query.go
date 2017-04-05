@@ -28,6 +28,7 @@ type QueryInterface interface {
 	GetSelectFields() []SelectFields
 	RelatedTables() map[string]Join
 	TableName() string
+	GetWhere() map[string]string
 	Scan(*gorm.DB) (interface{}, error)
 	GenTableHtml(interface{}, int) template.HTML
 }
@@ -57,8 +58,9 @@ func (fac *QueryFactory) Count() (int64, error) {
 	tableName := fac.Q.TableName()
 	relatedTables := fac.Q.RelatedTables()
 	searchFields := fac.Q.GetSearchFields()
+	where := fac.Q.GetWhere()
 
-	q := joinAndWhere(fac.DB, tableName, relatedTables, searchFields, fac.Req.Search)
+	q := joinAndWhere(fac.DB, tableName, relatedTables, searchFields, fac.Req.Search, where)
 	if err := q.Count(&count).Error; err != nil {
 		return 0, err
 	}
@@ -82,7 +84,8 @@ func (fac *QueryFactory) FindAll() (interface{}, error) {
 
 	// joins and where
 	searchFields := fac.Q.GetSearchFields()
-	q = joinAndWhere(q, tableName, relatedTables, searchFields, fac.Req.Search)
+	where := fac.Q.GetWhere()
+	q = joinAndWhere(q, tableName, relatedTables, searchFields, fac.Req.Search, where)
 
 	// limit
 	if fac.Req.Limit == 0 {
@@ -112,12 +115,20 @@ func (fac *QueryFactory) FlashMessage() template.HTML {
 	return GenAlertFlashMsg(fac.Flash)
 }
 
-func joinAndWhere(q *gorm.DB, tableName string, relatedTables map[string]Join, searchFields []SearchField, reqSearch []SearchField) *gorm.DB {
+func joinAndWhere(q *gorm.DB, tableName string, relatedTables map[string]Join, searchFields []SearchField, reqSearch []SearchField, where map[string]string) *gorm.DB {
 	q = q.Table(tableName)
 	// joins
 	for k, v := range relatedTables {
 		ss := v.Type + k + ON + v.Cond
 		q = q.Joins(ss)
+	}
+
+	for k, v := range where {
+		if v != "" {
+			q = q.Where(k, v)			
+		} else {
+			q = q.Where(k)
+		}
 	}
 
 	// search
