@@ -7,6 +7,7 @@ import (
 
 const (
 	ALERT_SUCCESS     string = "alert-success"
+	ALERT_INFO        string = "alert-info"
 	ALERT_WARNING     string = "alert-warning"
 	ALERT_DANGER      string = "alert-danger"
 	TPL_THEAD         string = `<thead>%s</thead>`
@@ -44,9 +45,9 @@ func GenSearchForm(q []SearchField) template.HTML {
 	for k, v := range q {
 
 		input := ``
-		if len(q) - 1 == k {
+		if len(q)-1 == k {
 			input = fmt.Sprintf(searchIcon, i, v.Value)
-		} else{
+		} else {
 			input = fmt.Sprintf(search, i, v.Value)
 		}
 
@@ -65,6 +66,9 @@ func GenAlertFlashMsg(flash map[string]string) template.HTML {
 
 	var class, message string
 	if v, ok := flash["notice"]; ok {
+		class = ALERT_INFO
+		message = v
+	} else if v, ok := flash["success"]; ok {
 		class = ALERT_SUCCESS
 		message = v
 	} else if v, ok := flash["warning"]; ok {

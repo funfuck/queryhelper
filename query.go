@@ -53,6 +53,12 @@ func (fac *QueryFactory) SearchForm() template.HTML {
 	return GenSearchForm(searchFields)
 }
 
+func (fac *QueryFactory) GetSearchFields() *[]SearchField {
+	searchFields := fac.Q.GetSearchFields()
+	bindSearchQueryToSeconditionrchFields(fac.Req.Search, &searchFields)
+	return &searchFields
+}
+
 func (fac *QueryFactory) Count() (int64, error) {
 	var count int64
 	tableName := fac.Q.TableName()
@@ -125,7 +131,7 @@ func joinAndWhere(q *gorm.DB, tableName string, relatedTables map[string]Join, s
 
 	for k, v := range where {
 		if v != "" {
-			q = q.Where(k, v)			
+			q = q.Where(k, v)
 		} else {
 			q = q.Where(k)
 		}
