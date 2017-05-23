@@ -100,6 +100,8 @@ func (fac *QueryFactory) FindAll() (interface{}, error) {
 	q = q.Limit(fac.Req.Limit)
 	if fac.Req.Order != "" {
 		q = q.Order(fac.Req.Order + " " + fac.Req.Direction)
+	} else {
+		q = q.Order(tableName + ".created_at desc")
 	}
 	q = q.Offset(fac.Req.Offset)
 
