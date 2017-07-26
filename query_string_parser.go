@@ -22,6 +22,14 @@ type QueryString struct {
 	Search    []SearchField
 }
 
+func (q *QueryString) SearchMap() map[string]string {
+	m := make(map[string]string)
+	for _, v := range q.Search {
+		m[v.Key] = v.Value
+	}
+	return m
+}
+
 type SearchField struct {
 	Key      string
 	Value    string
